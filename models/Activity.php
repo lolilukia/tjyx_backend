@@ -60,7 +60,7 @@ class Activity extends ActiveRecord
                     }
                     else
                     {
-                        $total = Activity::find()->where(['actDate'=>$act_time])->count();
+                        $total = Activity::findBySql("select (select count(*)+1 from activity where time < b.time) as number from activity b where b.stuNum =:stuNum;",array(':stuNum'=>$stuNum));
                         return Array('state'=>'hasSign','detail'=>[$act_time, $total]);//已经报过名了
                     }
                 }
@@ -72,18 +72,18 @@ class Activity extends ActiveRecord
     public static function addNewAct($stuNum)
     {
         $act = new Activity();
-        $act->time = date("Y-m-d");
+        $act->time = date("Y-m-d H:i:s");
         $w = date('w');
         $hours = date('H');
         $mins = date('i');
-        $act_time = date("Y-m-d");
+        $act_time = null;
         if($w==1 || $w==3)
         {
-            $act_time = date("Y-m-d",strtotime("+1 day"));
+            $act_time = date("Y-m-d",strtotime("+1 day 18 hours"));
         }
         else if($w==2 || $w==4)
         {
-            $act_time = date("Y-m-d");
+            $act_time = date("Y-m-d",strtotime("+18 hours"));
         }
         $act->stuNum = $stuNum;
         $act->actDate = $act_time;
@@ -98,31 +98,18 @@ class Activity extends ActiveRecord
         {
             $user = Member::find()->where(['stuNum'=>$stuNum])->one();
             $record = Activity::find()->where(['stuNum'=>$stuNum, 'actDate'=>$act_time])->one();
-            $total = Activity::find()->where(['actDate'=>$act_time])->count();
             if(!$record)    //没有相关记录
             {
                 $act->save();
+                $total = Activity::findBySql("select (select count(*)+1 from activity where time < b.time) as number from activity b where b.stuNum =:stuNum;",array(':stuNum'=>$stuNum));
                 return Array('state'=>'success', 'detail'=>[$user->rest_time, $total]); //添加新记录
             }
             else
             {
+                $total = Activity::findBySql("select (select count(*)+1 from activity where time < b.time) as number from activity b where b.stuNum =:stuNum;",array(':stuNum'=>$stuNum));
                 return Array('state'=>'hasSign', 'detail'=>[$act_time, $total]); //已报名相同时段
             }
         }
-    }
-
-    public static function getActInfo($stuNum)
-    {
-        $w = date('w');
-        $act_time = null;
-        if($w==1 || $w==3){
-            $act_time = date("Y-m-d",strtotime("+1 day"));
-        }
-        else if($w==2 || $w==4){
-            $act_time = date("Y-m-d");
-        }
-        $record = Activity::find()->where(['stuNum'=>$stuNum, 'actDate'=>$act_time])->one();
-        return $record->period;
     }
 
     //退报名

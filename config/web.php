@@ -59,6 +59,10 @@ $config = [
             'class' => 'app\controllers\ActivityController',
             'enableCsrfValidation' => false,
         ],
+        'sign' => [
+            'class' => 'app\controllers\SignController',
+            'enableCsrfValidation' => false,
+        ]
     ],
     'modules' => [
         'activity' => 'app\modules\Activity',
