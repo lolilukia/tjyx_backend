@@ -11,16 +11,24 @@ class Enroll extends ActiveRecord
     }
 
     //招新添加新的会员
-    public static function addNewUser($stuNum, $name, $college, $phoneNum, $willStaff)
+    public static function addNewUser($name, $stuNum, $college, $phoneNum, $willStaff)
     {
         $customer = new Enroll();
-        $customer->stuNum = $stuNum;
-        $customer->name = $name;
-        $customer->college = $college;
-        $customer->phoneNum = $phoneNum;
-        $customer->willStaff = $willStaff;
-        $customer->save();
-        return true;
+        $record = Enroll::find()->where(['stuNum'=>$stuNum])->one();
+        if($record)
+        {
+            return Array('state'=>'fail');
+        }
+        else
+        {
+            $customer->stuNum = $stuNum;
+            $customer->name = $name;
+            $customer->college = $college;
+            $customer->phoneNum = $phoneNum;
+            $customer->willingStaff = $willStaff;
+            $customer->save();
+            return Array('state'=>'success');
+        }
     }
 
     public static function getOpenid($code)

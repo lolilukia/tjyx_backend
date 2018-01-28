@@ -56,9 +56,19 @@ class Signup extends ActiveRecord
                     }
                     else
                     {
-                        $sign->duration = 1;
-                        $sign->save();
-                        return Array('state'=>'success'); //签到成功
+                        $total = Activity::findBySql("select (select count(*)+1 from activity where time < b.time) as number from activity b where b.stuNum =:stuNum;",array(':stuNum'=>$stuNum));
+                        //是否在30名之内
+                        if($total < 30){
+                            $sign->duration = 1;
+                            $rest = $sign->rest_time - 3;
+                            $sign->rest_time = $rest;
+                            $sign->save();
+                            return Array('state'=>'success'); //签到成功
+                        }
+                        else
+                        {
+                            return Array('state'=>'orderError');//排序在30以外
+                        }
                     }
                 }
             }

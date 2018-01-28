@@ -54,7 +54,10 @@ $config = [
     ],
     'params' => $params,
     'controllerMap' => [
-        'bind' => 'app\controllers\BindController',
+        'bind' => [
+            'class' => 'app\controllers\BindController',
+            'enableCsrfValidation' => false,
+        ],
         'activity' => [
             'class' => 'app\controllers\ActivityController',
             'enableCsrfValidation' => false,
