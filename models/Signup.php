@@ -25,7 +25,15 @@ class Signup extends ActiveRecord
         $w = date('w');
         $hours = date('H');
         $mins = date('i');
-        $sign->time = date("Y-m-d");
+        $sign->time = null;
+        if($w == 2 || $w == 4)
+        {
+            $sign->time = date("Y-m-d");
+        }
+        else
+        {
+            $sign->time = date("Y-m-d",strtotime("+1 day"));
+        }
         //判断是否签到过
         $signRecord = Signup::find()->where(['stuNum'=>$stuNum, 'time'=>$sign->time])->one();
         if($signRecord)
