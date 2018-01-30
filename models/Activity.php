@@ -61,7 +61,7 @@ class Activity extends ActiveRecord
                     else
                     {
                         $sign_time = $record->time;
-                        $total = Activity::find()->where(['<', 'time', $sign_time])->count();
+                        $total = Activity::find()->where(['<', 'time', $sign_time])->andWhere(['actDate'=>$act_time])->count();
                         return Array('state'=>'hasSign','detail'=>[$act_time, $total+1]);//已经报过名了
                     }
                 }
@@ -102,13 +102,13 @@ class Activity extends ActiveRecord
             if(!$record)    //没有相关记录
             {
                 $act->save();
-                $total = Activity::find()->where(['<', 'time', $act->time])->count();
+                $total = Activity::find()->where(['<', 'time', $act->time])->andWhere(['actDate'=>$act_time])->count();
                 return Array('state'=>'success', 'detail'=>[$user->rest_time, $total+1]); //添加新记录
             }
             else
             {
                 $sign_time = $record->time;
-                $total = Activity::find()->where(['<', 'time', $sign_time])->count();
+                $total = Activity::find()->where(['<', 'time', $sign_time])->andWhere(['actDate'=>$act_time])->count();
                 return Array('state'=>'hasSign', 'detail'=>[$act_time, $total+1]); //已报名相同时段
             }
         }

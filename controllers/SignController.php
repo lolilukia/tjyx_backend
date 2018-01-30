@@ -9,7 +9,7 @@
 namespace app\controllers;
 use yii\web\Controller;
 
-class SignController
+class SignController extends Controller
 {
     public function actionSign()  //签到
     {
