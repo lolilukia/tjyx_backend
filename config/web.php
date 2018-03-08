@@ -65,6 +65,10 @@ $config = [
         'sign' => [
             'class' => 'app\controllers\SignController',
             'enableCsrfValidation' => false,
+        ],
+        'survey' => [
+            'class' => 'app\controllers\SurveyController',
+            'enableCsrfValidation' => false,
         ]
     ],
     'modules' => [
@@ -72,6 +76,7 @@ $config = [
         'enroll' => 'app\modules\Enroll',
         'member' => 'app\modules\Member',
         'signup' => 'app\modules\Signup',
+        'survey' => 'app\modules\Survey'
     ],
 ];
 
