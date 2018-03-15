@@ -23,4 +23,32 @@ class Member extends ActiveRecord
         $stu->save();
         return true;
     }
+
+    public static function recharge($stunum, $pwd, $amount)
+    {
+        //预留接口，如需要设定为某管理员才有充值的权限
+        $cwNum = '1652610';
+        $setting = 'jdyxCz18';
+        $cw_num = Member::find()->where(['stuNum'=>$cwNum])->one();
+        if($cw_num){
+            if($pwd == $setting){
+                $member = Member::find()->where(['stuNum'=>$stunum])->one();
+                if(!$member){
+                    return Array('state'=>'fail');
+                }
+                else{
+                    $ori = $member->rest_time;
+                    $member->rest_time = $ori + ($amount / 3);
+                    $member->save();
+                    return Array('state'=>'success');
+                }
+            }
+            else{
+                return Array('state'=>'denied');
+            }
+        }
+        else{
+            return Array('state'=>'cw_noBind');
+        }
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace app\models;
 use yii\db\ActiveRecord;
+include('Member.php');
 
 class Enroll extends ActiveRecord
 {
@@ -56,6 +57,7 @@ class Enroll extends ActiveRecord
         }
     }
 
+    /*
     public static function setEncode($text)
     {
         $data = NULL;
@@ -72,39 +74,34 @@ class Enroll extends ActiveRecord
                 break;
         }
         return $data;
-    }
+    }*/
 
     //判断绑定账号的是否为会员
-    public static function bindUser($code, $name, $stuNum, $nickname)
+    public static function bindUser($code, $stuNum, $nickname)
     {
-        $customer = new Enroll();
-        $stuNum = $customer->setEncode($stuNum);
-        $customer->stuNum = $stuNum;
-        $name = $customer->setEncode($name);
-        $customer->name = $name;
-        $code = $customer->setEncode($code);
-        $nickname = $customer->setEncode($nickname);
-        $customer = Enroll::find()->where(['stuNum'=>$stuNum])->one();
-        if(!$customer){
-            return 2; //未注册
+        $custom_record = Enroll::find()->where(['stuNum'=>$stuNum])->one();
+        if(!$custom_record){
+            return Array('state'=>'no register'); //未注册
         }
         else{
+            $name = $custom_record->name;
             $student = Member::find()->where(['stuNum'=>$stuNum])->one();
             if($student)
             {
-                return 4; //已绑定
+                return Array('state'=>'already bind'); //已绑定
             }
             else
             {
-                $open_id = $customer->getOpenid($code);
+                $enroll = new Enroll();
+                $open_id = $enroll->getOpenid($code);
                 if(!$open_id)
                 {
-                    return 3; //网络原因未能获取用户标示
+                    return Array('state'=>'no openid'); //网络原因未能获取用户标示
                 }
                 else
                 {
                     Member::addMember($name, 10, 0, $open_id, $stuNum, $nickname);
-                    return 1; //绑定账号成功
+                    return Array('state'=>'success'); //绑定账号成功
                 }
             }
         }

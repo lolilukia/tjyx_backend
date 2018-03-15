@@ -69,7 +69,13 @@ class Signup extends ActiveRecord
                         //是否在30名之内
                         if($total < 30){
                             $sign->duration = 1;
-                            $rest = $user->rest_time - 3;
+                            $rest = $user->rest_time;
+                            if($w == 2){
+                                $rest = $user->rest_time - 3;
+                            }
+                            else if($w == 4){
+                                $rest = $user->rest_time - 1;
+                            }
                             $user->rest_time = $rest;
                             $user->save();
                             $sign->save();

@@ -69,6 +69,10 @@ $config = [
         'survey' => [
             'class' => 'app\controllers\SurveyController',
             'enableCsrfValidation' => false,
+        ],
+        'recharge' => [
+            'class' => 'app\controllers\RechargeController',
+            'enableCsrfValidation' => false,
         ]
     ],
     'modules' => [

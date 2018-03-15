@@ -32,27 +32,11 @@ class BindController extends Controller
         $user = new \app\models\Enroll();
         $request = \YII::$app->request;
         $code = $request->post('code');
-        $name = $request->post('realname');
-        $number = $request->post('stunum');
+        $stuNum = $request->post('stunum');
         $nickname = $request->post('nickname');
-        $success = Array('state'=>'success');
-        $fail = Array('state'=>'no register');
-        $fail_1 = Array('state'=>'no openid');
-        $fail_2 = Array('state'=>'already bind');
         header("Access-Control-Allow-Origin: *");//同源策略 跨域请求 头设置
         header('content-type:text/html;charset=utf8 ');
-        $state = $user->bindUser($code, $name, $number, $nickname);
-        if($state==1){
-            echo json_encode($success);
-        }
-        else if($state==2){
-            echo json_encode($fail);
-        }
-        else if($state==3){
-            echo json_encode($fail_1);
-        }
-        else if($state==4){
-            echo json_encode($fail_2);
-        }
+        $state = $user->bindUser($code, $stuNum, $nickname);
+        echo json_encode($state);
     }
 }
