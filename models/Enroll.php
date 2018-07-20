@@ -12,6 +12,7 @@ class Enroll extends ActiveRecord
     }
 
     //招新添加新的会员
+    //old
     public static function addNewUser($name, $stuNum, $college, $phoneNum, $willStaff)
     {
         $customer = new Enroll();
@@ -31,7 +32,8 @@ class Enroll extends ActiveRecord
             return Array('state'=>'success');
         }
     }
-
+    //获取用户唯一标识openid
+    //old
     public static function getOpenid($code)
     {
         $app_id = 'wx284a40da3abb10cf';
@@ -77,6 +79,7 @@ class Enroll extends ActiveRecord
     }*/
 
     //判断绑定账号的是否为会员
+    //old
     public static function bindUser($code, $stuNum, $nickname)
     {
         $custom_record = Enroll::find()->where(['stuNum'=>$stuNum])->one();
@@ -104,6 +107,47 @@ class Enroll extends ActiveRecord
                     return Array('state'=>'success'); //绑定账号成功
                 }
             }
+        }
+    }
+    //查询用户的个人信息
+    //new
+    public static function search_info($stuNum)
+    {
+        $user = Enroll::find()->where(['stuNum'=>$stuNum])->one();
+        if($user)
+        {
+            return Array('state'=> 'success', 'name' => $user->name, 'college' => $user->college, 'phone' => $user->phoneNum, 'willing' => $user->willingStaff, 'coach' => $user->coach);
+        }
+        else
+        {
+            return Array('state'=> 'fail');
+        }
+    }
+    //更新用户的信息
+    //new
+    public static function updateInfo($name, $stuNum, $college, $phoneNum, $willStaff)
+    {
+        $customer = new Enroll();
+        $record = Enroll::find()->where(['stuNum'=>$stuNum])->one();
+        if($record)
+        {
+            $record->name = $name;
+            $record->college = $college;
+            $record->phoneNum = $phoneNum;
+            $record->willingStaff = $willStaff;
+            $record->save();
+            return Array('state'=>'update_success');
+        }
+        else
+        {
+            $customer->stuNum = $stuNum;
+            $customer->name = $name;
+            $customer->college = $college;
+            $customer->phoneNum = $phoneNum;
+            $customer->willingStaff = $willStaff;
+            $customer->save();
+            Member::addMember($name, 10, 0, null, $stuNum, null);
+            return Array('state'=>'add_success');
         }
     }
 }

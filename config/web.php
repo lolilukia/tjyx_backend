@@ -73,6 +73,22 @@ $config = [
         'recharge' => [
             'class' => 'app\controllers\RechargeController',
             'enableCsrfValidation' => false,
+        ],
+        'info' => [
+            'class' => 'app\controllers\InfoController',
+            'enableCsrfValidation' => false,
+        ],
+        'feature' => [
+            'class' => 'app\controllers\FeatureController',
+            'enableCsrfValidation' => false,
+        ],
+        'coach' => [
+            'class' => 'app\controllers\CoachController',
+            'enableCsrfValidation' => false,
+        ],
+        'special' => [
+            'class' => 'app\controllers\SpecialController',
+            'enableCsrfValidation' => false,
         ]
     ],
     'modules' => [
@@ -80,7 +96,11 @@ $config = [
         'enroll' => 'app\modules\Enroll',
         'member' => 'app\modules\Member',
         'signup' => 'app\modules\Signup',
-        'survey' => 'app\modules\Survey'
+        'survey' => 'app\modules\Survey',
+        'recharge' => 'app\modules\Recharge',
+        'feature' => 'app\modules\Feature',
+        'coach' => 'app\modules\Coach',
+        'special' => 'app\modules\Special'
     ],
 ];
 
