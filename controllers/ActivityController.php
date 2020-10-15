@@ -11,36 +11,15 @@ use yii\web\Controller;
 
 class ActivityController extends Controller
 {
-    public function actionAct()  //新增报名信息-old
-    {
-        $act = new \app\models\Activity();
-        $request = \YII::$app->request;
-        $number = $request->post('stunum');
-        header("Access-Control-Allow-Origin: *");//同源策略 跨域请求 头设置
-        header('content-type:text/html;charset=utf8 ');
-        $state = $act->addNewAct($number);
-        echo json_encode($state);
-    }
-
-    public function actionJudge()//判断是否能报名-old
-    {
-        $act = new \app\models\Activity();
-        $request = \YII::$app->request;
-        $number = $request->post('stunum');
-        header("Access-Control-Allow-Origin: *");//同源策略 跨域请求 头设置
-        header('content-type:text/html;charset=utf8 ');
-        $state = $act->judgeAct($number);
-        echo json_encode($state);
-    }
-
     public function actionCancel() //退报名-new
     {
         $act = new \app\models\Activity();
         $request = \YII::$app->request;
         $number = $request->post('stunum');
+        $type = $request->post('type');
         header("Access-Control-Allow-Origin: *");//同源策略 跨域请求 头设置
         header('content-type:text/html;charset=utf8 ');
-        $state = $act->ModifyAct($number);
+        $state = $act->ModifyAct($number, $type);
         echo json_encode($state);
     }
 
@@ -49,7 +28,8 @@ class ActivityController extends Controller
         $act = new \app\models\Activity();
         $request = \YII::$app->request;
         $number = $request->get('stunum');
-        $state = $act->SignOrder($number);
+        $type = $request->get('type');
+        $state = $act->SignOrder($number, $type);
         echo json_encode($state);
     }
 
@@ -58,7 +38,8 @@ class ActivityController extends Controller
         $act = new \app\models\Activity();
         $request = \YII::$app->request;
         $number = $request->get('date');
-        $state = $act->Applicant($number);
+        $type = $request->get('type');
+        $state = $act->Applicant($number, $type);
         echo json_encode($state);
     }
 
@@ -67,9 +48,10 @@ class ActivityController extends Controller
         $act = new \app\models\Activity();
         $request = \YII::$app->request;
         $number = $request->post('stunum');
+        $type = $request->post('type');
         header("Access-Control-Allow-Origin: *");//同源策略 跨域请求 头设置
         header('content-type:text/html;charset=utf8 ');
-        $state = $act->addActRecord($number);
+        $state = $act->addActRecord($number, $type);
         echo json_encode($state);
     }
 

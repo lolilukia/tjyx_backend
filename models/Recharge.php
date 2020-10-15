@@ -20,7 +20,7 @@ class Recharge extends ActiveRecord
     public static function recharge($stunum, $pwd, $amount)
     {
         //预留接口，如需要设定为某管理员才有充值的权限
-        $cwNum = '1652610';
+        $cwNum = '1610831';
         $setting = 'jdyxCz18';
         $cw_num = Member::find()->where(['stuNum'=>$cwNum])->one();
         if($cw_num){
@@ -36,6 +36,7 @@ class Recharge extends ActiveRecord
                     $r = new Recharge();
                     $r->stuNum = $stunum;
                     $r->recharge_time = date("Y-m-d");
+                    $r->action_time = date("Y-m-d H:i:s");
                     $r->amount = $amount;
                     $r->times = $amount/3;
                     $r->save();

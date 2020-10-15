@@ -10,7 +10,9 @@ class FeatureController extends Controller
     public function actionFind()
     {
         $feature = new \app\models\Feature();
-        $state = $feature->getInfo();
+        $request = \YII::$app->request;
+        $number = $request->get('stunum');
+        $state = $feature->getInfo($number);
         echo json_encode($state);
     }
 
@@ -20,8 +22,9 @@ class FeatureController extends Controller
     {
         $feature = new \app\models\Feature();
         $request = \YII::$app->request;
-        $number = $request->get('id');
-        $state = $feature->getDetail($number);
+        $actId = $request->get('id');
+        $number = $request->get('stunum');
+        $state = $feature->getDetail($actId, $number);
         echo json_encode($state);
     }
 
@@ -35,5 +38,4 @@ class FeatureController extends Controller
         $state = $survey->judgeSurvey($number);
         echo json_encode($state);
     }
-
 }

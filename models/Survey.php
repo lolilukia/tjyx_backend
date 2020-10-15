@@ -13,10 +13,16 @@ class Survey extends ActiveRecord
     //new
     public static function judgeSurvey($stuNum)
     {
-        $record = Survey::find()->where(['stuNum'=>$stuNum])->one();
+        $record = Survey::find()->where(['stuNum' => $stuNum])->one();
         if($record)
         {
-            return Array('survey'=> 1);
+            $year = $record->yearsexp;
+            $purpose = $record->purpose;
+            $willing = $record->willing;
+            $hope = $record->hope;
+            $advise = $record->advise;
+            return Array('survey' => 1, 'year' => $year, 'purpose' => $purpose,
+                'willing' => $willing, 'hope' => $hope, 'advise' => $advise);
         }
         else
         {
@@ -28,14 +34,26 @@ class Survey extends ActiveRecord
     //new
     public static function addSurvey($stuNum, $yearsexp, $purpose, $willing, $hope, $advise)
     {
-        $psq = new Survey();
-        $psq->stuNum = $stuNum;
-        $psq->yearsexp = $yearsexp;
-        $psq->purpose = $purpose;
-        $psq->willing = $willing;
-        $psq->hope = $hope;
-        $psq->advise = $advise;
-        $psq->save();
-        return Array('state'=>'success');
+        $record = Survey::find()->where(['stuNum' => $stuNum])->one();
+        if($record){
+            if($record->yearsexp != $yearsexp) $record->yearsexp = $yearsexp;
+            if($record->purpose != $purpose) $record->purpose = $purpose;
+            if($record->willing != $willing) $record->willing = $willing;
+            if($record->hope != $hope) $record->hope = $hope;
+            if($record->advise != $advise) $record->advise = $advise;
+            $record->save();
+            return Array('state' => 'update');
+        }
+        else{
+            $psq = new Survey();
+            $psq->stuNum = $stuNum;
+            $psq->yearsexp = $yearsexp;
+            $psq->purpose = $purpose;
+            $psq->willing = $willing;
+            $psq->hope = $hope;
+            $psq->advise = $advise;
+            $psq->save();
+            return Array('state' => 'add');
+        }
     }
 }

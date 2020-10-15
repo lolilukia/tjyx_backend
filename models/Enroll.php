@@ -146,7 +146,7 @@ class Enroll extends ActiveRecord
             $customer->phoneNum = $phoneNum;
             $customer->willingStaff = $willStaff;
             $customer->save();
-            Member::addMember($name, 10, 0, null, $stuNum, null);
+            Member::addMember($name, 0, 0, null, $stuNum, null);
             return Array('state'=>'add_success');
         }
     }

@@ -11,182 +11,107 @@ use yii\db\ActiveRecord;
 
 class Activity extends ActiveRecord
 {
+    public static $teach_weekday = 2;
+    public static $act_weekday = 2;
+    public static $teach_start_time = "15:00:00";
+    public static $act_start_time = "17:30:00";
+    public static $teach_num = 3;
+    public static $act_num = 1;
 
     public static function tableName()
     {
         return 'activity';
     }
-    //判断是否可以报名
-    //old
-    public static function judgeAct($stuNum)
-    {
-        $w = date('w');
-        $hours = date('H');
-        $mins = date('i');
-        $reg = Enroll::find()->where(['stuNum'=>$stuNum])->one();
-        if(!$reg)
-        {
-            return Array('state'=>'noReg', 'detail'=>''); //未注册羽协
-        }
-        else
-        {
-            $user = Member::find()->where(['stuNum'=>$stuNum])->one();
-            if(!$user)
-            {
-                return Array('state'=>'noBind', 'detail'=>'');//未绑定账号
-            }
-            else
-            {
-                if($w < 1 || $w > 4 || ($w == 1 && $hours < 17) || ($w == 3 && $hours < 17) ||
-                    ($w == 2 && $hours > 20) || ($w == 2 && $hours == 20 && $mins > 30) ||
-                    ($w == 4 && $hours > 20) || ($w == 4 && $hours == 20 && $mins > 30))
-                {
-                    return Array('state'=>'timeError', 'detail'=>'');//报名时间不对
-                }
-                else
-                {
-                    $act_time = date("Y-m-d");
-                    if($w==1 || $w==3)
-                    {
-                        $act_time = date("Y-m-d",strtotime("+1 day"));
-                    }
-                    else if($w==2 || $w==4)
-                    {
-                        $act_time = date("Y-m-d");
-                    }
-                    $record = Activity::find()->where(['stuNum'=>$stuNum, 'actDate'=>$act_time])->one();
-                    if(!$record)
-                    {
-                        return Array('state'=>'ok', 'detail'=>'');//可以报名
-                    }
-                    else
-                    {
-                        $sign_time = $record->time;
-                        $total = Activity::find()->where(['<', 'time', $sign_time])->andWhere(['actDate'=>$act_time])->count();
-                        return Array('state'=>'hasSign','detail'=>[$act_time, $total+1]);//已经报过名了
-                    }
-                }
-            }
-        }
-    }
-
-    //添加新的报名记录
-    //old
-    public static function addNewAct($stuNum)
-    {
-        $act = new Activity();
-        $act->time = date("Y-m-d H:i:s");
-        $w = date('w');
-        $hours = date('H');
-        $mins = date('i');
-        $act_time = null;
-        if($w==1 || $w==3)
-        {
-            $act_time = date("Y-m-d",strtotime("+1 day"));
-        }
-        else if($w==2 || $w==4)
-        {
-            $act_time = date("Y-m-d");
-        }
-        $act->stuNum = $stuNum;
-        $act->actDate = $act_time;
-        $act->period = 1;
-        if($w < 1 || $w > 4 || ($w == 1 && $hours < 17) || ($w == 3 && $hours < 17) ||
-            ($w == 2 && $hours > 20) || ($w == 2 && $hours == 20 && $mins > 30) ||
-            ($w == 4 && $hours > 20) || ($w == 4 && $hours == 20 && $mins > 30))
-        {
-            return Array('state'=>'timeError', 'detail'=>'');//报名时间不对
-        }
-        else
-        {
-            $user = Member::find()->where(['stuNum'=>$stuNum])->one();
-            $record = Activity::find()->where(['stuNum'=>$stuNum, 'actDate'=>$act_time])->one();
-            if(!$record)    //没有相关记录
-            {
-                $act->save();
-                $total = Activity::find()->where(['<', 'time', $act->time])->andWhere(['actDate'=>$act_time])->count();
-                return Array('state'=>'success', 'detail'=>[$user->rest_time, $total+1]); //添加新记录
-            }
-            else
-            {
-                $sign_time = $record->time;
-                $total = Activity::find()->where(['<', 'time', $sign_time])->andWhere(['actDate'=>$act_time])->count();
-                return Array('state'=>'hasSign', 'detail'=>[$act_time, $total+1]); //已报名相同时段
-            }
-        }
-    }
-
     //退报名
     //new
-    public static function ModifyAct($stuNum)
+    public static function ModifyAct($stuNum, $type)
     {
         $w = date('w');
         $today = date("Y-m-d");
         $act = null;
         $user = Member::find()->where(['stuNum' => $stuNum])->one();
         $rest = $user->rest_time;
-        if ($w == 1 || $w == 2) {
-            $rest = $user->rest_time + 3;
-        }
-        else if ($w == 3 || $w == 4) {
-            $rest = $user->rest_time + 1;
-        }
-        $user->rest_time = $rest;
-        $user->save();
-        if($w==1 || $w==3){ //今天周一或周三报名了周二或周四的活动，删除活动记录
-            $act = Activity::find()->where(['stuNum'=>$stuNum, 'actDate'=>date("Y-m-d",strtotime("+1 day"))])->one();
+        $time = null;
+        if($type == 0) $time = self::$teach_start_time;
+        else $time = self::$act_start_time;
+        if($w == (self::$teach_weekday - 1) || $w == (self::$act_weekday - 1)){ //前一天报名的，删除活动记录
+            $act = Activity::find()->where(['stuNum' => $stuNum, 'actDate' => date("Y-m-d",strtotime("+1 day")), 'actTime' => $time])->one();
             if($act)
             {
+                if($type == 0){
+                    $rest = $user->rest_time + 3;
+                }
+                else{
+                    $rest = $user->rest_time + 1;
+                }
                 $act->delete();
-                return Array('state'=>'success');
+                $user->rest_time = $rest;
+                $user->save();
+                return Array('state' => 'success');
             }
         }
-        else if($w==2 || $w==4){//今天周二或周四删除当天的
-            $act = Activity::find()->where(['stuNum'=>$stuNum, 'actDate'=>$today])->one();
-            if($act)
+        else if($w == self::$teach_weekday || $w == self::$act_weekday){//删除当天的
+            $act = Activity::find()->where(['stuNum' => $stuNum, 'actDate' => $today, 'actTime' => $time])->one();
+            $hours = date('H');
+            $teach_hour = intval(explode(':', self::$teach_start_time)[0]);
+            $act_hour = intval(explode(':', self::$act_start_time)[0]);
+            if($act && (($type == 0 && $hours < $teach_hour)||($type == 1 && $hours < $act_hour)))
             {
+                if($type == 0){
+                    $rest = $user->rest_time + 3;
+                }
+                else{
+                    $rest = $user->rest_time + 1;
+                }
                 $act->delete();
-                return Array('state'=>'success');
+                $user->rest_time = $rest;
+                $user->save();
+                return Array('state' => 'success');
             }
         }
         return Array('state'=>'fail');
     }
     //返回是否报名，共多少人报名和假如报名了的具体位次信息
     //new
-    public static function SignOrder($stuNum)
+    public static function SignOrder($stuNum, $type)
     {
         $w = date('w');
-        $act_time = null;
-        if($w==1 || $w==3)
+        if($type == 0) $act_time = self::$teach_start_time;
+        else $act_time = self::$act_start_time;
+        $act_date = null;
+        if($w == (self::$teach_weekday - 1) || $w == (self::$act_weekday - 1))
         {
-            $act_time = date("Y-m-d",strtotime("+1 day"));
+            $act_date = date("Y-m-d",strtotime("+1 day"));
         }
-        else if($w==2 || $w==4)
+        else if($w == self::$teach_weekday || $w == self::$act_weekday)
         {
-            $act_time = date("Y-m-d");
+            $act_date = date("Y-m-d");
         }
         else
         {
-            return Array('state'=>'success','is_sign'=>'false', 'total' => 0);
+            return Array('state' => 'success','is_sign' => 'false', 'total' => 0);
         }
-        $record = Activity::find()->where(['stuNum' => $stuNum, 'actDate' => $act_time])->one();
-        $all_sign = Activity::find()->where(['actDate' => $act_time])->count();
+        $record = Activity::find()->where(['stuNum' => $stuNum, 'actDate' => $act_date, 'actTime' => $act_time])->one();
+        $all_sign = Activity::find()->where(['actDate' => $act_date, 'actTime' => $act_time])->count();
         if($record)
         {
-            $total = Activity::find()->where(['<', 'time', $record->time])->andWhere(['actDate' => $act_time])->count();
+            $total = Activity::find()->where(['<', 'time', $record->time])->andWhere(['actDate' => $act_date, 'actTime' => $act_time])->count();
             return Array('state'=>'success','is_sign'=>'true', 'total' => ($all_sign + 0), 'order'=> ($total + 1));
         }
         else
         {
-            return Array('state'=>'success','is_sign'=>'false', 'total' => ($all_sign + 0));
+            return Array('state' => 'success','is_sign' => 'false', 'total' => ($all_sign + 0));
         }
     }
     //返回当天报名人的姓名列表
     //new
-    public static function Applicant($date)
+    public static function Applicant($date, $type)
     {
         $act_day = date("Y-m-d",strtotime($date));
-        $applicant = Activity::find()->where(['actDate' => $act_day])->orderBy('time')->all();
+        $act_time = null;
+        if($type == 0) $act_time = self::$teach_start_time;
+        else $act_time = self::$act_start_time;
+        $applicant = Activity::find()->where(['actDate' => $act_day, 'actTime' => $act_time])->orderBy('time')->all();
         $res = Array();
         $res['count'] = count($applicant);
         for($i = 0; $i < count($applicant); $i++){
@@ -194,62 +119,76 @@ class Activity extends ActiveRecord
             $res['data'][$i]['num'] = $i + 1;
             $res['data'][$i]['name'] = $member->name;
         }
-        return Array('state'=>'success', 'names'=>$res);
+        return Array('state' => 'success', 'names' => $res);
     }
     //添加新的报名记录
     //new
-    public static function addActRecord($stuNum)
+    public static function addActRecord($stuNum, $type)
     {
-        $act = new Activity();
-        $act->time = date("Y-m-d H:i:s");
         $w = date('w');
+        $act_date = null;
+        if ($w == (self::$teach_weekday - 1) || $w == (self::$act_weekday - 1)) {
+            $act_date = date("Y-m-d", strtotime("+1 day"));
+        }
+        else if ($w == self::$teach_weekday || $w == self::$act_weekday) {
+            $act_date = date("Y-m-d");
+        }
         $act_time = null;
-        if ($w == 1 || $w == 3) {
-            $act_time = date("Y-m-d", strtotime("+1 day"));
-        }
-        else if ($w == 2 || $w == 4) {
-            $act_time = date("Y-m-d");
-        }
-        $act->stuNum = $stuNum;
-        $act->actDate = $act_time;
-        $act->period = 1;
-        $act->save();
-        //判断剩余次数是否足够
-        $user = Member::find()->where(['stuNum' => $stuNum])->one();
-        if ($user->rest_time <= 0) {
-            return Array('state' => 'insufficient'); //余额不足
-        }
-        else {
-            $total = Activity::find()->where(['<', 'time', $act->time])->andWhere(['actDate' => $act_time])->count();
-            $rest = $user->rest_time;
-            if ($w == 1 || $w == 2) {
-                $rest = $user->rest_time - 3;
+        if($type == 0) $act_time = self::$teach_start_time;
+        else $act_time = self::$act_start_time;
+        $record = Activity::find()->where(['stuNum' => $stuNum, 'actDate' => $act_date, 'time' => $act_time])->one();
+        if(!$record){
+            $act = new Activity();
+            $act->time = date("Y-m-d H:i:s");
+            $act->stuNum = $stuNum;
+            $act->actDate = $act_date;
+            $act->actTime = $act_time;
+            if($type == 0) $act->period = 0;
+            else $act->period = 1;
+            //判断剩余次数是否足够
+            $user = Member::find()->where(['stuNum' => $stuNum])->one();
+            if (($type == 0 && $user->rest_time < 3)||($type == 1 && $user->rest_time < 1)) {
+                return Array('state' => 'insufficient'); //余额不足
             }
-            else if ($w == 3 || $w == 4) {
-                $rest = $user->rest_time - 1;
+            else {
+                $total = Activity::find()->where(['<', 'time', $act->time])->andWhere(['actDate' => $act_date, 'actTime' => $act_time])->count();
+                $rest = $user->rest_time;
+                if ($type == 0) {
+                    $rest = $user->rest_time - 3;
+                }
+                else {
+                    $rest = $user->rest_time - 1;
+                }
+                $act->save();
+                $user->rest_time = $rest;
+                $user->save();
+                return Array('state' => 'success', 'detail' => $total + 1); //添加新记录
             }
-            $user->rest_time = $rest;
-            $user->save();
-            return Array('state' => 'success', 'detail' => $total + 1); //添加新记录
+        }
+        else{
+            $info = Activity::find()->where(['stuNum' => $stuNum, 'actDate' => $act_date, 'actTime' => $act_time])->one();
+            $total = Activity::find()->where(['<', 'time', $info->time])->andWhere(['actDate' => $act_time, 'actTime' => $act_time])->count();
+            return Array('state' => 'success', 'detail' => $total + 1);
         }
     }
     //查询某个用户活动记录
     //new
-    public static function find_record($stunum)
+    public static function find_record($stuNum)
     {
-        $signRecords = Activity::find()->where(['stuNum'=>$stunum])->all();
+        $signRecords = Activity::find()->where(['stuNum' => $stuNum])->all();
         $res = Array();
         for($i = 0; $i < count($signRecords); $i++) {
-            $res[$i]['time'] = substr($signRecords[$i]->actDate, 0, 10);
-            if($signRecords[$i]->weekday == 2){
+            $res[$i]['date'] = $signRecords[$i]->actDate;
+            $res[$i]['time'] = $signRecords[$i]->actTime;
+            if($signRecords[$i]->actTime == self::$teach_start_time){
                 $res[$i]['weekday'] = '教学场';
-                $res[$i]['number'] = 3;
+                $res[$i]['number'] = self::$teach_num;
             }
             else{
                 $res[$i]['weekday'] = '自由活动场';
-                $res[$i]['number'] = 1;
+                $res[$i]['number'] = self::$act_num;
             }
         }
-        return Array('count'=>count($signRecords), 'records'=>$res);
+        return Array('count' => count($signRecords), 'records' => $res);
     }
 }

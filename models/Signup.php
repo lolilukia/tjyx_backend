@@ -93,7 +93,7 @@ class Signup extends ActiveRecord
         }
     }
     //查询某个用户活动（签到）的记录
-    //old
+    //new
     public static function find_record($stunum)
     {
         $signRecords = Signup::find()->where(['stuNum'=>$stunum])->all();
@@ -134,15 +134,6 @@ class Signup extends ActiveRecord
             if($total < 30){
                 $sign->duration = 1;
                 $sign->weekday = $w;
-                $rest = $user->rest_time;
-                if($w == 2){
-                    $rest = $user->rest_time - 3;
-                }
-                else if($w == 4){
-                    $rest = $user->rest_time - 1;
-                }
-                $user->rest_time = $rest;
-                $user->save();
                 $sign->save();
                 return Array('state'=>'success'); //签到成功
             }
